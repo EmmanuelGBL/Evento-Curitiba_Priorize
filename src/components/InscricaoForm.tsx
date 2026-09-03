@@ -68,7 +68,6 @@ export function InscricaoForm() {
       className="space-y-5"
     >
       <input type="hidden" name="_subject" value={`Cadastro evento ${EVENTO.titulo} (Curitiba)`} />
-      <input type="hidden" name="_captcha" value="false" />
       <input type="hidden" name="_template" value="table" />
       <input type="hidden" name="_next" value={`${SITE_URL}/inscricao-confirmada`} />
       <input type="hidden" name="_autoresponse" value={CONFIRMATION_EMAIL_MESSAGE} />
@@ -233,7 +232,7 @@ export function InscricaoForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg border-2 border-brand-600 bg-white px-6 py-3 text-base font-semibold text-brand-600 transition-all hover:bg-brand-600 hover:text-white hover:shadow-lg disabled:opacity-70"
+        className="w-full cursor-pointer rounded-lg border-2 border-brand-600 bg-white px-6 py-3 text-base font-semibold text-brand-600 transition-all hover:bg-brand-600 hover:text-white hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
       >
         <span className="flex items-center justify-center gap-2">
           {isSubmitting ? (
