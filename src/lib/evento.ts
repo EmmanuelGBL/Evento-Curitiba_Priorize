@@ -38,9 +38,17 @@ export const CONTACT = {
 export const MEET_LINK = "https://meet.google.com/mtw-zqrc-yni";
 
 /**
- * Corpo do e-mail automático que o FormSubmit devolve pra quem se inscreve
- * (campo `_autoresponse`). É a única confirmação instantânea que a pessoa
- * recebe — guarda o link do Meet, então não personaliza com o nome dela.
+ * Remetente dos e-mails transacionais (Resend), separado do `contato@` que
+ * vive no Titan. Precisa existir como domínio verificado no Resend — não
+ * precisa de caixa própria, é só endereço de envio.
+ */
+export const MAIL_FROM = `${EVENTO.titulo} <inscricoes@priorizecorporativa.com.br>`;
+
+/**
+ * Corpo do e-mail automático que a pessoa recebe assim que se inscreve,
+ * enviado pela rota `/api/inscricao` via Resend. É a única confirmação
+ * instantânea que ela recebe — guarda o link do Meet, então não
+ * personaliza com o nome dela.
  */
 export const CONFIRMATION_EMAIL_MESSAGE =
   `Seu cadastro no evento "${EVENTO.titulo}" está confirmado.\n\n` +
@@ -80,19 +88,6 @@ export function whatsappUrl(message?: string): string {
     `Olá! Me cadastrei para o evento ${EVENTO.titulo} e quero saber mais sobre o levantamento de riscos psicossociais.`;
   return `https://wa.me/${CONTACT.phoneRaw}?text=${encodeURIComponent(text)}`;
 }
-
-/**
- * Mesmo e-mail de destino do site principal, para o lead cair na mesma
- * caixa que a Edianne e a Ascensão já monitoram. O `_subject` no envio do
- * formulário é o que diferencia esse lead como vindo do evento.
- *
- * Sem `/ajax/` de propósito: o FormSubmit só dispara o `_autoresponse`
- * (e-mail automático com o link do Meet para quem se inscreve) em envios
- * via POST tradicional do navegador — a variante AJAX não tem esse recurso.
- */
-export const FORM_ENDPOINT =
-  process.env.NEXT_PUBLIC_FORM_ENDPOINT ??
-  "https://formsubmit.co/contato@priorizecorporativa.com.br";
 
 /** Link do site principal, usado no rodapé e na política de privacidade. */
 export const SITE_PRINCIPAL_URL = "https://priorizecorporativa.com.br";

@@ -1,42 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Loader2, Send } from "lucide-react";
-import {
-  CONFIRMATION_EMAIL_MESSAGE,
-  EVENTO,
-  FORM_ENDPOINT,
-  SITE_URL,
-  whatsappUrl,
-} from "@/lib/evento";
-
-const schema = z.object({
-  nome: z.string().trim().min(2, "Informe seu nome."),
-  empresa: z.string().trim().min(2, "Informe o nome da empresa."),
-  cargo: z.string().trim().min(2, "Informe seu cargo."),
-  telefone: z
-    .string()
-    .trim()
-    .min(10, "Informe um telefone com DDD.")
-    .regex(/^[\d\s()+-]+$/, "Use apenas números, espaços e os sinais ( ) + -"),
-  email: z.string().trim().email("Informe um e-mail válido."),
-  porte: z.string().min(1, "Selecione o quantitativo de funcionários."),
-  consentimento: z.literal(true, {
-    message: "É preciso autorizar o contato para enviar.",
-  }),
-});
-
-type FormValues = z.infer<typeof schema>;
-
-const PORTES = [
-  "Até 19 funcionários",
-  "De 20 a 49 funcionários",
-  "De 50 a 99 funcionários",
-  "De 100 a 499 funcionários",
-  "500 funcionários ou mais",
-];
+import { CalendarPlus, CheckCircle2, Loader2, Send } from "lucide-react";
+import { inscricaoSchema, PORTES, type InscricaoValues } from "@/lib/inscricaoSchema";
+import { EVENTO, googleCalendarUrl, whatsappUrl } from "@/lib/evento";
 
 const fieldClass =
   "w-full rounded-xl border border-brand-200 bg-white px-4 py-3 text-base text-ink " +
@@ -45,33 +14,70 @@ const fieldClass =
 const labelClass = "mb-1.5 block text-sm font-medium text-ink";
 
 export function InscricaoForm() {
+  const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  } = useForm<InscricaoValues>({ resolver: zodResolver(inscricaoSchema) });
 
-  function onValid(_values: FormValues, event?: React.BaseSyntheticEvent) {
-    // Envio nativo (não fetch): é o único jeito do FormSubmit disparar o
-    // `_autoresponse` com o link do Meet para quem se inscreve. O
-    // handleSubmit do react-hook-form já bloqueou o submit automático do
-    // navegador; aqui disparamos manualmente com os campos já validados.
-    (event?.target as HTMLFormElement | undefined)?.submit();
+  async function onSubmit(values: InscricaoValues) {
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch("/api/inscricao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) throw new Error("Falha no envio");
+
+      reset();
+      setSuccess(true);
+    } catch {
+      setErrorMessage(
+        "Não conseguimos enviar seu cadastro agora. Tente novamente em instantes ou fale direto no WhatsApp.",
+      );
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="rounded-2xl border border-brand-100 bg-brand-50 p-6 text-center sm:p-8">
+        <CheckCircle2
+          size={44}
+          className="mx-auto text-brand-600"
+          aria-hidden="true"
+        />
+        <h3 className="mt-4 text-xl font-semibold tracking-tight text-ink">
+          Cadastro recebido
+        </h3>
+        <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+          Sua vaga no {EVENTO.titulo} está confirmada, dia {EVENTO.data} às{" "}
+          {EVENTO.horarioBrasilia} (horário de Brasília).
+        </p>
+        <a
+          href={googleCalendarUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-brand-700"
+        >
+          <CalendarPlus size={18} aria-hidden="true" />
+          Adicionar {EVENTO.titulo} ao Google Agenda
+        </a>
+        <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+          O link da chamada também acaba de chegar no seu e-mail.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <form
-      action={FORM_ENDPOINT}
-      method="POST"
-      onSubmit={handleSubmit(onValid)}
-      noValidate
-      className="space-y-5"
-    >
-      <input type="hidden" name="_subject" value={`Cadastro evento ${EVENTO.titulo} (Curitiba)`} />
-      <input type="hidden" name="_template" value="table" />
-      <input type="hidden" name="_next" value={`${SITE_URL}/inscricao-confirmada`} />
-      <input type="hidden" name="_autoresponse" value={CONFIRMATION_EMAIL_MESSAGE} />
-
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="nome">
@@ -249,17 +255,19 @@ export function InscricaoForm() {
         </span>
       </button>
 
-      <p className="text-center text-xs text-ink-soft">
-        Prefere falar direto?{" "}
-        <a
-          href={whatsappUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-semibold underline"
-        >
-          Chame no WhatsApp
-        </a>
-      </p>
+      {errorMessage ? (
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+          {errorMessage}{" "}
+          <a
+            href={whatsappUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline"
+          >
+            Abrir o WhatsApp
+          </a>
+        </div>
+      ) : null}
     </form>
   );
 }
