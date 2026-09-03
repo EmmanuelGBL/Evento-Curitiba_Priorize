@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/*
+  Mesmo Design System do site principal (Site/src/app/globals.css).
+  Cor primaria da marca: #34691E. Manter os dois arquivos em sincronia se a
+  paleta oficial mudar.
+*/
+@theme {
+  --color-brand-50: #f3f8ec;
+  --color-brand-100: #e3efd3;
+  --color-brand-200: #c9deb5;
+  --color-brand-300: #a7c88c;
+  --color-brand-400: #7fa95e;
+  --color-brand-500: #4e8a2e;
+  --color-brand-600: #34691e;
+  --color-brand-700: #2a5518;
+  --color-brand-800: #203f13;
+  --color-brand-900: #16300f;
+  --color-brand-950: #0d2411;
+
+  --color-lime-accent: #cdf280;
+
+  --color-whatsapp: #25d366;
+  --color-whatsapp-dark: #1da851;
+
+  --color-ink: #161a13;
+  --color-ink-soft: #4a5245;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
