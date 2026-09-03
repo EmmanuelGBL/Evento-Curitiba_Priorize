@@ -87,7 +87,6 @@ export function InscricaoForm() {
             aria-invalid={!!errors.nome}
             aria-describedby={errors.nome ? "erro-nome" : undefined}
             {...register("nome")}
-            name="Nome"
           />
           {errors.nome ? (
             <p id="erro-nome" role="alert" className="mt-1.5 text-sm text-red-700">
@@ -109,7 +108,6 @@ export function InscricaoForm() {
             aria-invalid={!!errors.empresa}
             aria-describedby={errors.empresa ? "erro-empresa" : undefined}
             {...register("empresa")}
-            name="Empresa"
           />
           {errors.empresa ? (
             <p id="erro-empresa" role="alert" className="mt-1.5 text-sm text-red-700">
@@ -131,7 +129,6 @@ export function InscricaoForm() {
             aria-invalid={!!errors.cargo}
             aria-describedby={errors.cargo ? "erro-cargo" : undefined}
             {...register("cargo")}
-            name="Cargo"
           />
           {errors.cargo ? (
             <p id="erro-cargo" role="alert" className="mt-1.5 text-sm text-red-700">
@@ -154,7 +151,6 @@ export function InscricaoForm() {
             aria-invalid={!!errors.telefone}
             aria-describedby={errors.telefone ? "erro-telefone" : undefined}
             {...register("telefone")}
-            name="Telefone"
           />
           {errors.telefone ? (
             <p id="erro-telefone" role="alert" className="mt-1.5 text-sm text-red-700">
@@ -177,7 +173,6 @@ export function InscricaoForm() {
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "erro-email" : undefined}
             {...register("email")}
-            name="E-mail"
           />
           {errors.email ? (
             <p id="erro-email" role="alert" className="mt-1.5 text-sm text-red-700">
@@ -197,7 +192,6 @@ export function InscricaoForm() {
             aria-invalid={!!errors.porte}
             aria-describedby={errors.porte ? "erro-porte" : undefined}
             {...register("porte")}
-            name="Quantitativo de funcionários"
           >
             <option value="" disabled>
               Selecione
