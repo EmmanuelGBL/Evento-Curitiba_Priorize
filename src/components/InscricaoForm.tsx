@@ -70,7 +70,8 @@ export function InscricaoForm() {
           Adicionar {EVENTO.titulo} ao Google Agenda
         </a>
         <p className="mt-3 text-xs leading-relaxed text-ink-soft">
-          O link da chamada também acaba de chegar no seu e-mail.
+          O link da chamada e o convite do Google Agenda também acabam de
+          chegar no seu e-mail.
         </p>
       </div>
     );

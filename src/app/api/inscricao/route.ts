@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { inscricaoSchema } from "@/lib/inscricaoSchema";
 import {
+  buildEventoIcs,
   CONFIRMATION_EMAIL_MESSAGE,
   CONTACT,
   EVENTO,
@@ -12,6 +13,7 @@ async function sendEmail(payload: {
   subject: string;
   text: string;
   replyTo?: string;
+  attachments?: { filename: string; content: string; content_type: string }[];
 }) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -25,6 +27,7 @@ async function sendEmail(payload: {
       subject: payload.subject,
       text: payload.text,
       reply_to: payload.replyTo,
+      attachments: payload.attachments,
     }),
   });
 
@@ -58,6 +61,9 @@ export async function POST(request: Request) {
     .map(([label, value]) => `${label}: ${value}`)
     .join("\n");
 
+  const convite = buildEventoIcs({ nome, email });
+  const conviteBase64 = Buffer.from(convite, "utf-8").toString("base64");
+
   try {
     await Promise.all([
       sendEmail({
@@ -71,6 +77,13 @@ export async function POST(request: Request) {
         subject: `Inscrição confirmada — ${EVENTO.titulo}`,
         text: CONFIRMATION_EMAIL_MESSAGE,
         replyTo: CONTACT.email,
+        attachments: [
+          {
+            filename: "convite.ics",
+            content: conviteBase64,
+            content_type: "text/calendar; charset=UTF-8; method=REQUEST",
+          },
+        ],
       }),
     ]);
   } catch (error) {

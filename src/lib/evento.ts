@@ -40,9 +40,11 @@ export const MEET_LINK = "https://meet.google.com/mtw-zqrc-yni";
 /**
  * Remetente dos e-mails transacionais (Resend), separado do `contato@` que
  * vive no Titan. Precisa existir como domínio verificado no Resend — não
- * precisa de caixa própria, é só endereço de envio.
+ * precisa de caixa própria, é só endereço de envio. O ORGANIZER do convite
+ * de agenda (.ics) usa o mesmo endereço, para bater com o From: do e-mail.
  */
-export const MAIL_FROM = `${EVENTO.titulo} <inscricoes@priorizecorporativa.com.br>`;
+export const MAIL_FROM_ADDRESS = "inscricoes@priorizecorporativa.com.br";
+export const MAIL_FROM = `${EVENTO.titulo} <${MAIL_FROM_ADDRESS}>`;
 
 /**
  * Corpo do e-mail automático que a pessoa recebe assim que se inscreve,
@@ -54,7 +56,8 @@ export const CONFIRMATION_EMAIL_MESSAGE =
   `Seu cadastro no evento "${EVENTO.titulo}" está confirmado.\n\n` +
   `Data: ${EVENTO.data}\n` +
   `Horário: ${EVENTO.horarioBrasilia} (horário de Brasília)\n` +
-  `Link da chamada (Google Meet): ${MEET_LINK}\n\n` +
+  `Link da chamada (Google Meet): ${MEET_LINK}\n` +
+  `Adicionar ao Google Agenda: ${googleCalendarUrl()}\n\n` +
   "Guarde este e-mail — é ele que tem o link de acesso. Qualquer dúvida, " +
   "responda este e-mail ou chame no WhatsApp.\n\n" +
   `Equipe ${COMPANY.legalName}`;
@@ -80,6 +83,66 @@ export function googleCalendarUrl(): string {
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+/** Escapa vírgula, ponto e vírgula, barra invertida e quebra de linha, como o RFC 5545 exige. */
+function icsEscape(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;")
+    .replace(/\n/g, "\\n");
+}
+
+/**
+ * Monta o convite de calendário (.ics, `METHOD:REQUEST`) anexado ao e-mail
+ * de confirmação. É o que faz o Gmail/Outlook mostrarem o card de verdade,
+ * com "Sim / Talvez / Não", em vez de só um link clicável.
+ *
+ * UID fixo (não muda por inscrição) porque é o mesmo evento para todo
+ * mundo — cada e-mail é um convite individual desse UID para um ATTENDEE
+ * diferente. Reenviar para a mesma pessoa com SEQUENCE igual é reenvio do
+ * mesmo convite, não um evento novo.
+ *
+ * ORGANIZER usa `contato@`, não `inscricoes@`: quando alguém clica em
+ * "Sim/Talvez/Não" no convite, o Gmail manda a resposta de RSVP direto
+ * para o e-mail do organizer. `inscricoes@` é só remetente técnico do
+ * Resend, sem caixa de verdade — a resposta bateria e sumiria.
+ */
+export function buildEventoIcs(attendee: { nome: string; email: string }): string {
+  const inicio = new Date(EVENTO.inicioUTC);
+  const fim = new Date(inicio.getTime() + EVENTO.duracaoMinutos * 60_000);
+  const agora = toGoogleCalendarStamp(new Date().toISOString());
+
+  const descricao = icsEscape(
+    `Evento online da Priorize sobre a NR-1, pelo ${EVENTO.formato}. ` +
+      `Link da chamada: ${MEET_LINK}`,
+  );
+
+  const linhas = [
+    "BEGIN:VCALENDAR",
+    "PRODID:-//Priorize//Evento Curitiba//PT",
+    "VERSION:2.0",
+    "CALSCALE:GREGORIAN",
+    "METHOD:REQUEST",
+    "BEGIN:VEVENT",
+    "UID:evento-descomplicando-nr1-curitiba-2026@priorizecorporativa.com.br",
+    `DTSTAMP:${agora}`,
+    `DTSTART:${toGoogleCalendarStamp(inicio.toISOString())}`,
+    `DTEND:${toGoogleCalendarStamp(fim.toISOString())}`,
+    `SUMMARY:${icsEscape(`${EVENTO.titulo} — evento Priorize`)}`,
+    `DESCRIPTION:${descricao}`,
+    `LOCATION:${icsEscape(MEET_LINK)}`,
+    `ORGANIZER;CN=${icsEscape(COMPANY.legalName)}:mailto:${CONTACT.email}`,
+    `ATTENDEE;CN=${icsEscape(attendee.nome)};RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:${attendee.email}`,
+    "SEQUENCE:0",
+    "STATUS:CONFIRMED",
+    "TRANSP:OPAQUE",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+
+  return linhas.join("\r\n");
 }
 
 export function whatsappUrl(message?: string): string {
