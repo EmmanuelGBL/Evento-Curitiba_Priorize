@@ -11,12 +11,12 @@ export const SITE_URL = "https://inscricao.priorizecorporativa.com.br";
 export const EVENTO = {
   titulo: "Descomplicando a NR-1",
   data: "22 de setembro de 2026",
-  horarioBrasilia: "18h30",
-  horarioManaus: "19h30",
+  horarioBrasilia: "19h30",
+  horarioManaus: "18h30",
   formato: "Google Meet",
   publico: "empresas de Curitiba e Campo Largo",
   /** Início em UTC. Curitiba está em UTC-3 o ano todo (sem horário de verão). */
-  inicioUTC: "2026-09-22T21:30:00Z",
+  inicioUTC: "2026-09-22T22:30:00Z",
   /** Duração do convite oficial no Google Meet. Pode acabar passando disso na prática. */
   duracaoMinutos: 60,
 } as const;
@@ -135,7 +135,10 @@ export function buildEventoIcs(attendee: { nome: string; email: string }): strin
     `LOCATION:${icsEscape(MEET_LINK)}`,
     `ORGANIZER;CN=${icsEscape(COMPANY.legalName)}:mailto:${CONTACT.email}`,
     `ATTENDEE;CN=${icsEscape(attendee.nome)};RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:${attendee.email}`,
-    "SEQUENCE:0",
+    // 1 porque o horário mudou de 18h30 para 19h30 de Brasília depois que o
+    // convite já tinha saído. Quem recebeu a versão 0 só vê o card atualizar
+    // se a SEQUENCE subir. Se o horário mudar de novo, sobe de novo.
+    "SEQUENCE:1",
     "STATUS:CONFIRMED",
     "TRANSP:OPAQUE",
     "END:VEVENT",
