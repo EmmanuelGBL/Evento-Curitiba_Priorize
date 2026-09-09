@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { inscricaoSchema } from "@/lib/inscricaoSchema";
+import { registrarNaPlanilha } from "@/lib/planilha";
 import {
   buildEventoIcs,
   CONFIRMATION_EMAIL_MESSAGE,
@@ -64,8 +65,25 @@ export async function POST(request: Request) {
   const convite = buildEventoIcs({ nome, email });
   const conviteBase64 = Buffer.from(convite, "utf-8").toString("base64");
 
+  // Fora do try dos e-mails de propósito: a linha na planilha é gravada mesmo
+  // que o Resend falhe, e é o que impede o lead de evaporar quando o envio cai.
+  // O custo é que uma pessoa que receba erro e tente de novo gera duas linhas
+  // com o mesmo e-mail — visível na planilha pelo horário, e preferível a perder
+  // o cadastro. A função não lança: falha dela vira log, nunca 502 para o site.
+  const gravacao = registrarNaPlanilha({
+    Nome: nome,
+    Empresa: empresa,
+    Cargo: cargo,
+    Telefone: telefone,
+    "E-mail": email,
+    "Quantitativo de funcionários": porte,
+    "Consentimento LGPD": "Sim",
+    Origem: "Landing do evento",
+  });
+
   try {
     await Promise.all([
+      gravacao,
       sendEmail({
         to: CONTACT.email,
         subject: `Cadastro evento ${EVENTO.titulo} (Curitiba)`,
