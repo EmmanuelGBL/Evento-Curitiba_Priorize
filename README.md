@@ -26,9 +26,17 @@ prontos para copiar estão na mesma pasta.
 
 ## Variáveis de ambiente
 
-Ver `.env.example`. Sem configurar nada, o formulário já cai em
-`contato@priorizecorporativa.com.br` via FormSubmit — a mesma caixa que recebe o lead
-do site principal, com o assunto do e-mail identificando que veio do evento.
+Ver `.env.example`. O envio não usa mais FormSubmit: a rota `/api/inscricao` manda os
+dois e-mails pelo Resend (o lead para `contato@priorizecorporativa.com.br` e a
+confirmação com o convite `.ics` para quem se inscreveu), então **sem `RESEND_API_KEY`
+o cadastro falha**.
+
+## Lista de inscritos e dashboard
+
+Cada inscrição também é gravada numa Google Planilha, que é a fonte que o Looker Studio
+lê para o painel da Priorize. Passo a passo completo — publicar o Apps Script, ligar o
+`.env` e montar o dashboard — em `deploy/dashboard-inscricoes.md`. Sem
+`PLANILHA_URL`/`PLANILHA_TOKEN` o site funciona igual, só não acumula a lista.
 
 ## Depois do evento (22/09)
 

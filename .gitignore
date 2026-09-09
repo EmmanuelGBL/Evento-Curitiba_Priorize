@@ -36,3 +36,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# encurtador de links: banco local em JSON, nao versiona
+/data
